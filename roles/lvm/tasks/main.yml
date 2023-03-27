@@ -1,0 +1,64 @@
+---
+# tasks file for main
+
+- name: Create physical volume
+  lvol:
+    vg: vg_data
+    pv: /dev/sdb
+
+- name: Create volume group
+  lvol:
+    vg: vg_data
+    pvs: /dev/sdb
+
+- name: Create logical volume
+  lvol:
+    vg: vg_data
+    lv: lv_cache
+    size: 1G
+    forec: yes
+
+- name: Create cache pool
+  lvol:
+    vg: vg_data
+    lv: lv_cache
+    size: 500M
+    cache_settings:
+      mode: writeback
+      policy: smq
+    name: cache_pool
+
+- name: Create cache volume
+  lvol:
+    vg: vg_data
+    lv: cache_vol
+    size: 500M
+    cache_settings:
+      cache_pool_name: cache_pool
+    state: cache
+
+- name: Format cache volume
+  filesystem:
+    fstype: ext4
+    dev: /dev/mapper/vg_data-cache_vol
+
+- name: Mount cache volume
+  mount:
+    path: /mnt/cache
+    src: /dev/mapper/vg_data-cache_vol
+    fstype: ext4
+    state: mounted
+    opts: defaults
+
+
+- name: Create directory cache if does not exist
+  file:
+    path: /mnt/cache
+    state: directory
+    mode: '0755'
+
+- name: Add cache volume to fstab
+  lineinfile:
+    path: /etc/fstab
+    line: "/dev/mapper/vg_data-cache_vol /mnt/cache ext4 defaults 0 0"
+    state: present
