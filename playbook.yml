@@ -16,7 +16,6 @@
     - name: Add PowerTools repository
       yum_repository:
         name: powertools
-        description: CentOS $releasever - PowerTools
         baseurl: http://mirror.centos.org/centos/$releasever/PowerTools/$basearch/os/
         gpgcheck: yes
         enabled: yes
