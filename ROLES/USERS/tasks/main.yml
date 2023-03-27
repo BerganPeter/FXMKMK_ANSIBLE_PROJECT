@@ -1,2 +1,26 @@
 ---
 # tasks file for USERS
+
+- vars_files:
+    - vars/main.yml
+
+- name: Create accounting group
+  group:
+    name: accounting
+    state: present
+
+- name: Create finance group
+  group:
+    name: finance
+    state: present
+
+- name: Create management group
+  group:
+    name: management
+    state: present
+
+- name: Create user accounts
+  ansible.builtin.user:
+    name: "{{ item['username'] }}"
+    groups: "{{ item['groups'] }}"
+  loop: "{{ groups }}"

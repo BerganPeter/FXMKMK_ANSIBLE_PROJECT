@@ -1,2 +1,63 @@
 ---
 # vars file for USERS
+users:
+  - username: user1
+    groups: accounting
+  - username: user2
+    groups: accounting
+  - username: user3
+    groups: accounting
+  - username: user4
+    groups: accounting
+  - username: user5
+    groups: accounting
+  - username: user6
+    groups: accounting
+  - username: user7
+    groups: accounting
+  - username: user8
+    groups: accounting
+  - username: user9
+    groups: accounting
+  - username: user10
+    groups: accounting
+  - username: user11
+    groups: management
+  - username: user12
+    groups: management
+  - username: user13
+    groups: management
+  - username: user14
+    groups: management
+  - username: user15
+    groups: management
+  - username: user16
+    groups: management
+  - username: user17
+    groups: management
+  - username: user18
+    groups: management
+  - username: user19
+    groups: management
+  - username: user20
+    groups: management
+  - username: user21
+    groups: finance
+  - username: user22
+    groups: finance
+  - username: user23
+    groups: finance
+  - username: user24
+    groups: finance
+  - username: user25
+    groups: finance
+  - username: user26
+    groups: finance
+  - username: user27
+    groups: finance
+  - username: user28
+    groups: finance
+  - username: user29
+    groups: finance
+  - username: user30
+    groups: finance
