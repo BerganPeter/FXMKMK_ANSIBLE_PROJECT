@@ -1,0 +1,9 @@
+---
+- name: Create LVM and mounting it.
+  hosts: hosts
+  become: true
+
+  roles:
+    - LVM
+    
+
