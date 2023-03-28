@@ -18,17 +18,17 @@
 
 - name: Create physical volume on cache partition
   become: true
-  command: pvcreate /dev/sda4
+  command: pvcreate /dev/sdb1
   when: disk_partition.changed
 
 - name: Create volume group
   become: true
-  command: vgcreate cache_vg /dev/sda4
+  command: vgcreate cache_vg /dev/sdb1
   when: disk_partition.changed
 
 - name: Create cache logical volume
   become: true
-  command: lvcreate --type cache-pool --name cache_lv -L 10G cache_vg /dev/sda4
+  command: lvcreate --type cache-pool --name cache_lv -L 2G cache_vg /dev/sdb1
   when: disk_partition.changed
 
 - name: Create backing logical volume
