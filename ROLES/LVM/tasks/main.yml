@@ -1,64 +1,70 @@
 ---
 # tasks file for main
+- name: Install lvm2 package
+  yum:
+    name: lvm2
+    state: present
 
-- name: Create physical volume
-  lvol:
-    vg: vg_data
-    pv: /dev/sdb
+- name: Create cache partition
+  parted:
+    device: /dev/sdb
+    number: 1
+    state: present
+    align: optimal
+    part_start: 1MB
+    part_end: 100%
+    fs_type: ext4
+  register: disk_partition
+
+- name: Create physical volume on cache partition
+  become: true
+  command: pvcreate /dev/sda4
+  when: disk_partition.changed
 
 - name: Create volume group
-  lvol:
-    vg: vg_data
-    pvs: /dev/sdb
+  become: true
+  command: vgcreate cache_vg /dev/sda4
+  when: disk_partition.changed
 
-- name: Create logical volume
-  lvol:
-    vg: vg_data
-    lv: lv_cache
-    size: 1G
-    forec: yes
+- name: Create cache logical volume
+  become: true
+  command: lvcreate --type cache-pool --name cache_lv -L 10G cache_vg /dev/sda4
+  when: disk_partition.changed
+
+- name: Create backing logical volume
+  become: true
+  command: lvcreate --name backing_lv -l 100%FREE cache_vg
+  when: disk_partition.changed
 
 - name: Create cache pool
-  lvol:
-    vg: vg_data
-    lv: lv_cache
-    size: 500M
-    cache_settings:
-      mode: writeback
-      policy: smq
-    name: cache_pool
+  become: true
+  command: lvconvert --type cache --poolmetadata cache_vg/cache_lv cache_vg/backing_lv
+  when: disk_partition.changed
 
-- name: Create cache volume
-  lvol:
-    vg: vg_data
-    lv: cache_vol
-    size: 500M
-    cache_settings:
-      cache_pool_name: cache_pool
-    state: cache
 
 - name: Format cache volume
   filesystem:
     fstype: ext4
-    dev: /dev/mapper/vg_data-cache_vol
+    dev: /dev/mapper/cache_vg/backing_lv
+    force: yes
+  when: disk_partition.changed
+
+- name: Create mount point directory
+  file:
+    path: /data/dir
+    state: directory
 
 - name: Mount cache volume
   mount:
-    path: /mnt/cache
-    src: /dev/mapper/vg_data-cache_vol
+    path: /data/dir
+    src: /dev/cache_vg/backing_lv
     fstype: ext4
-    state: mounted
     opts: defaults
-
-
-- name: Create directory cache if does not exist
-  file:
-    path: /mnt/cache
-    state: directory
-    mode: '0755'
+    state: mounted
+  when: disk_partition.changed
 
 - name: Add cache volume to fstab
   lineinfile:
     path: /etc/fstab
-    line: "/dev/mapper/vg_data-cache_vol /mnt/cache ext4 defaults 0 0"
+    line: '/dev/cache_vg/backing_lv /data/dir ext4 defaults 0 0'
     state: present

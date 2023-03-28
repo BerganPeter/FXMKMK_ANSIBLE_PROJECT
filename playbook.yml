@@ -4,24 +4,23 @@
   become: true
   roles:
     - lvm
+
 - name: Create users and Groups
   hosts: hosts
   become: true
   roles:
     - users
+    
 - name: Enable PowerTools repository
-  hosts: target_system
+  hosts: hosts 
   become: true    
   tasks:
     - name: Add PowerTools repository
       yum_repository:
         name: powertools
+        description: CentOS $releasever - PowerTools
         baseurl: http://mirror.centos.org/centos/$releasever/PowerTools/$basearch/os/
         gpgcheck: yes
         enabled: yes
         gpgkey: https://www.centos.org/keys/RPM-GPG-KEY-CentOS-Official
-      notify: update repo cache
 
-  handlers:
-    - name: update repo cache
-      command: yum clean all && yum makecache  
