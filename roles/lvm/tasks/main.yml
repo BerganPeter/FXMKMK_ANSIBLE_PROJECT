@@ -1,5 +1,5 @@
 ---
-# tasks file for main
+# tasks file for main    
 - name: Install lvm2 package
   yum:
     name: lvm2
@@ -12,42 +12,30 @@
     state: present
     align: optimal
     part_start: 1MB
-    part_end: 100%
+    part_end: 40%
     fs_type: ext4
-  register: disk_partition
 
 - name: Create physical volume on cache partition
   become: true
   command: pvcreate /dev/sdb1
-  when: disk_partition.changed
 
 - name: Create volume group
   become: true
   command: vgcreate cache_vg /dev/sdb1
-  when: disk_partition.changed
 
 - name: Create cache logical volume
   become: true
   command: lvcreate --type cache-pool --name cache_lv -L 2G cache_vg /dev/sdb1
-  when: disk_partition.changed
 
 - name: Create backing logical volume
   become: true
   command: lvcreate --name backing_lv -l 100%FREE cache_vg
-  when: disk_partition.changed
-
-- name: Create cache pool
-  become: true
-  command: lvconvert --type cache --poolmetadata cache_vg/cache_lv cache_vg/backing_lv
-  when: disk_partition.changed
-
 
 - name: Format cache volume
   filesystem:
     fstype: ext4
-    dev: /dev/mapper/cache_vg/backing_lv
+    dev: /dev/mapper/cache_vg-backing_lv
     force: yes
-  when: disk_partition.changed
 
 - name: Create mount point directory
   file:
@@ -57,14 +45,13 @@
 - name: Mount cache volume
   mount:
     path: /data/dir
-    src: /dev/cache_vg/backing_lv
+    src: /dev/mapper/cache_vg-backing_lv
     fstype: ext4
     opts: defaults
     state: mounted
-  when: disk_partition.changed
 
 - name: Add cache volume to fstab
   lineinfile:
     path: /etc/fstab
-    line: '/dev/cache_vg/backing_lv /data/dir ext4 defaults 0 0'
+    line: '/dev/mapper/cache_vg-backing_lv /data/dir ext4 defaults 0 0'
     state: present
